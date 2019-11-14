@@ -17,16 +17,26 @@ const pool = new Pool({
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithEmail = function(email) {
-  let user;
-  for (const userId in users) {
-    user = users[userId];
-    if (user.email.toLowerCase() === email.toLowerCase()) {
-      break;
-    } else {
-      user = null;
-    }
-  }
-  return Promise.resolve(user);
+
+  return pool.query(`
+    SELECT *
+    FROM users
+    WHERE email = $1
+  `,[email])
+  .then(res => {
+    return res.rows[0] || null;
+  })
+  // let user;
+  // for (const userId in users) {
+  //   user = users[userId];
+  //   if (user.email.toLowerCase() === email.toLowerCase()) {
+  //     break;
+  //   } else {
+  //     user = null;
+  //   }
+  // }
+  // console.log(user)
+  // return Promise.resolve(user);
 }
 exports.getUserWithEmail = getUserWithEmail;
 
@@ -36,7 +46,15 @@ exports.getUserWithEmail = getUserWithEmail;
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithId = function(id) {
-  return Promise.resolve(users[id]);
+  return pool.query(`
+    SELECT * 
+    FROM USERS
+    WHERE id = $1
+  `,[id])
+  .then(res => {
+    return res.rows[0] || null;
+  })
+  //return Promise.resolve(users[id]);
 }
 exports.getUserWithId = getUserWithId;
 
@@ -47,10 +65,25 @@ exports.getUserWithId = getUserWithId;
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser =  function(user) {
-  const userId = Object.keys(users).length + 1;
-  user.id = userId;
-  users[userId] = user;
-  return Promise.resolve(user);
+  //user = {name: 'Sam', email: 'Sam@gmail.com', password: "password"}
+  const userName = user.name;
+  const userEmail = user.email;
+  const userPassword = user.password;
+  let values = [userName,userEmail,userPassword];
+
+  return pool.query(`
+    INSERT INTO users (name,email,password)
+    VALUES ($1,$2,$3)
+    RETURNING *;
+  `,values)
+  .then(res => {
+    console.log(res.rows[0])
+    return res.rows[0] || null;
+  })
+  // const userId = Object.keys(users).length + 1;
+  // user.id = userId;
+  // users[userId] = user;
+  // return Promise.resolve(user);
 }
 exports.addUser = addUser;
 
