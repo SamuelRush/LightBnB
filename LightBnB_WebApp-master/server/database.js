@@ -35,7 +35,6 @@ const getUserWithEmail = function(email) {
   //     user = null;
   //   }
   // }
-  // console.log(user)
   // return Promise.resolve(user);
 }
 exports.getUserWithEmail = getUserWithEmail;
@@ -77,7 +76,6 @@ const addUser =  function(user) {
     RETURNING *;
   `,values)
   .then(res => {
-    console.log(res.rows[0])
     return res.rows[0] || null;
   })
   // const userId = Object.keys(users).length + 1;
@@ -95,7 +93,23 @@ exports.addUser = addUser;
  * @return {Promise<[{}]>} A promise to the reservations.
  */
 const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
+  values = [guest_id, limit]
+
+  return pool.query(`
+  SELECT reservations.*, properties.*, AVG(property_reviews.rating) as avg_rating
+  FROM reservations
+  JOIN properties ON properties.id = reservations.property_id
+  JOIN property_reviews ON property_reviews.property_id = properties.id
+  WHERE reservations.end_date < Now()::date AND reservations.guest_id = $1
+  GROUP BY reservations.id, properties.id
+  ORDER BY reservations.start_date
+  LIMIT $2;
+  `,values)
+  .then(res => {
+    return res.rows;
+  })
+  
+  //return getAllProperties(null, 2);
 }
 exports.getAllReservations = getAllReservations;
 
