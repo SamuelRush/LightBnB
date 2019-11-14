@@ -205,9 +205,36 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+  const propertyOwner = property.owner_id;
+  const propertyTitle = property.title;
+  const propertyDesc = property.description;
+  const propertyThumb = property.thumbnail_photo_url;
+  const propertyCover = property.cover_photo_url;
+  const propertyCost = property.cost_per_night;
+  const propertyStreet = property.street;
+  const propertyCity = property.city;
+  const propertyProvince = property.province;
+  const propertyPostal = property.post_code;
+  const propertyCountry = property.country;
+  const propertyParking = property.parking_spaces;
+  const propertyBath = property.number_of_bathrooms;
+  const propertyBed = property.number_of_bedrooms;
+
+  let values = [propertyTitle,propertyDesc,propertyOwner,propertyCover,propertyThumb,propertyCost,propertyParking,propertyBath,propertyBed,propertyProvince,propertyCity,propertyCountry,propertyStreet,propertyPostal]
+
+  return pool.query(`
+  INSERT INTO properties (title, description, owner_id, cover_photo_url, thumbnail_photo_url, cost_per_night, parking_spaces, number_of_bathrooms, number_of_bedrooms, province, city, country, street, post_code)
+  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+  RETURNING *;
+  `,values)
+  .then(res=> {
+    return res.rows[0] || null;
+  })
+
+  // const propertyId = Object.keys(properties).length + 1;
+  // property.id = propertyId;
+  // properties[propertyId] = property;
+  // return Promise.resolve(property);
 }
+
 exports.addProperty = addProperty;
